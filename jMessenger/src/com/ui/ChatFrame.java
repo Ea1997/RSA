@@ -2,7 +2,7 @@ package com.ui;
 
 import com.socket.History;
 
-
+import com.socket.RSA;
 import com.socket.Message;
 import com.socket.SocketClient;
 import java.awt.event.WindowEvent;
@@ -13,6 +13,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import java.awt.Toolkit;
+import java.math.BigInteger;
 
 public class ChatFrame extends javax.swing.JFrame {
 
@@ -28,8 +29,8 @@ public class ChatFrame extends javax.swing.JFrame {
     public HistoryFrame historyFrame;
     public History hist;
   
-    
-    
+ 
+        RSA rsa=new RSA();
     
     
     
@@ -45,7 +46,7 @@ public class ChatFrame extends javax.swing.JFrame {
         this.addWindowListener(new WindowListener() {
 
             @Override public void windowOpened(WindowEvent e) {}
-            @Override public void windowClosing(WindowEvent e) { try{ client.send(new Message("message", username, ".bye", "SERVER")); clientThread.stop();  }catch(Exception ex){} }
+            @Override public void windowClosing(WindowEvent e) { try{ client.send(new Message("message", username, ".bye", "SERVER",null)); clientThread.stop();  }catch(Exception ex){} }
             @Override public void windowClosed(WindowEvent e) {}
             @Override public void windowIconified(WindowEvent e) {}
             @Override public void windowDeiconified(WindowEvent e) {}
@@ -255,7 +256,7 @@ public class ChatFrame extends javax.swing.JFrame {
                 client = new SocketClient(this);
                 clientThread = new Thread(client);
                 clientThread.start();
-                client.send(new Message("test", "testUser", "testContent", "SERVER"));
+                client.send(new Message("test", "testUser", "testContent", "SERVER",null));
                 hist = new History("C:\\Users\\Salim\\Documents\\Application\\History.xml"); 
                 
                 historyFrame = new HistoryFrame(hist);
@@ -273,7 +274,7 @@ public class ChatFrame extends javax.swing.JFrame {
         password = jPasswordField1.getText();
         
         if(!username.isEmpty() && !password.isEmpty()){
-            client.send(new Message("login", username, password, "SERVER"));
+            client.send(new Message("login", username, password, "SERVER",null));
             jButton8.setEnabled(true);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -281,10 +282,11 @@ public class ChatFrame extends javax.swing.JFrame {
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         String msg = jTextField4.getText();
         String target = jList1.getSelectedValue().toString();
-        
+        byte[] message;
         if(!msg.isEmpty() && !target.isEmpty()){
+           message=rsa.encrypt(msg.getBytes());
             jTextField4.setText("");
-            client.send(new Message("message", username, msg, target));
+            client.send(new Message("message", username, null, target,message));
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 
@@ -312,7 +314,7 @@ public class ChatFrame extends javax.swing.JFrame {
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
             long size = file.length();
             if(size < 120 * 1024 * 1024){
-                client.send(new Message("upload_req", username, file.getName(), jList1.getSelectedValue().toString()));
+                client.send(new Message("upload_req", username, file.getName(), jList1.getSelectedValue().toString(),null));
             }
             else{
                 jTextArea1.append("[ChatUP > Me] : Fichier est tres volumineux\n");

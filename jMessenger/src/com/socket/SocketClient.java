@@ -2,6 +2,7 @@ package com.socket;
 
 import com.ui.ChatFrame;
 import java.io.*;
+import java.math.BigInteger;
 import java.net.*;
 import java.util.Date;
 import javax.swing.JFileChooser;
@@ -17,7 +18,8 @@ public class SocketClient implements Runnable{
     public ObjectInputStream In;
     public ObjectOutputStream Out;
     public History hist;
-    
+  
+      RSA rsa=new RSA();
     public SocketClient(ChatFrame frame) throws IOException{
         ui = frame; 
         this.serverAddr = "localhost";
@@ -38,8 +40,10 @@ public class SocketClient implements Runnable{
             try {
                 Message msg = (Message) In.readObject();
                 System.out.println("Incoming : "+msg.toString());
-                
+       
                 if(msg.type.equals("message")){
+                    msg.msgchiffre=rsa.decrypt(msg.msgchiffre);
+                   msg.content=rsa.bytesToString(msg.msgchiffre);
                     if(msg.recipient.equals(ui.username)){
                         ui.jTextArea1.append("["+msg.sender +" > Me] : " + msg.content + "\n");
                     }
@@ -128,14 +132,14 @@ public class SocketClient implements Runnable{
                             Thread t = new Thread(dwn);
                             t.start();
                             //send(new Message("upload_res", (""+InetAddress.getLocalHost().getHostAddress()), (""+dwn.port), msg.sender));
-                            send(new Message("upload_res", ui.username, (""+dwn.port), msg.sender));
+                            send(new Message("upload_res", ui.username, (""+dwn.port), msg.sender,null));
                         }
                         else{
-                            send(new Message("upload_res", ui.username, "NO", msg.sender));
+                            send(new Message("upload_res", ui.username, "NO", msg.sender,null));
                         }
                     }
                     else{
-                        send(new Message("upload_res", ui.username, "NO", msg.sender));
+                        send(new Message("upload_res", ui.username, "NO", msg.sender,null));
                     }
                 }
                 else if(msg.type.equals("upload_res")){
@@ -179,7 +183,9 @@ public class SocketClient implements Runnable{
             Out.writeObject(msg);
             Out.flush();
             System.out.println("Outgoing : "+msg.toString());
-            
+                 if(msg.content==null){
+                     msg.content="";
+                 }      
             if(msg.type.equals("message") && !msg.content.equals(".bye")){
                 String msgTime = (new Date()).toString();
                 try{
