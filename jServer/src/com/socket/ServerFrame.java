@@ -16,7 +16,7 @@ public class ServerFrame extends javax.swing.JFrame {
     
     public ServerFrame() {
         initComponents();     
-        filePath = "C:\\Users\\Salim\\Documents\\Application-reseau-master\\Data.xml";
+        filePath = "C:\\Users\\Salim\\Documents\\Application\\Data.xml";
             if(this.isWin32()){ filePath = filePath.replace("\\", "/"); }
             
             jButton1.setEnabled(true);

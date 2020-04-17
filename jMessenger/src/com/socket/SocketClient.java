@@ -5,12 +5,14 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 public class SocketClient implements Runnable{
-    
+    RSAS rsa;
     public int port;
     public String serverAddr;
     public Socket socket;
@@ -18,8 +20,7 @@ public class SocketClient implements Runnable{
     public ObjectInputStream In;
     public ObjectOutputStream Out;
     public History hist;
-  
-      RSA rsa=new RSA();
+    
     public SocketClient(ChatFrame frame) throws IOException{
         ui = frame; 
         this.serverAddr = "localhost";
@@ -34,16 +35,30 @@ public class SocketClient implements Runnable{
     }
 
     @Override
-    public void run() {
+    public void run() 
+    {
         boolean keepRunning = true;
         while(keepRunning){
+           // try {
+                Message msg = null;
             try {
-                Message msg = (Message) In.readObject();
+                msg = (Message) In.readObject();
+                System.out.println("brahim ");
+            } catch (IOException ex) {
+                Logger.getLogger(SocketClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(SocketClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
                 System.out.println("Incoming : "+msg.toString());
-       
-                if(msg.type.equals("message")){
-                    msg.msgchiffre=rsa.decrypt(msg.msgchiffre);
-                   msg.content=rsa.bytesToString(msg.msgchiffre);
+              
+                if(msg.type.equals("rsacles")){
+                    
+                    rsa=new RSAS(msg.e,new BigInteger("0"),msg.N);
+                    byte crypt[]=rsa.encrypt(msg.content.getBytes());
+  
+                    send(new Message("message",msg.sender,crypt,msg.recipient));
+                }
+                else if(msg.type.equals("message")){
                     if(msg.recipient.equals(ui.username)){
                         ui.jTextArea1.append("["+msg.sender +" > Me] : " + msg.content + "\n");
                     }
@@ -132,14 +147,14 @@ public class SocketClient implements Runnable{
                             Thread t = new Thread(dwn);
                             t.start();
                             //send(new Message("upload_res", (""+InetAddress.getLocalHost().getHostAddress()), (""+dwn.port), msg.sender));
-                            send(new Message("upload_res", ui.username, (""+dwn.port), msg.sender,null));
+                            send(new Message("upload_res", ui.username, (""+dwn.port), msg.sender));
                         }
                         else{
-                            send(new Message("upload_res", ui.username, "NO", msg.sender,null));
+                            send(new Message("upload_res", ui.username, "NO", msg.sender));
                         }
                     }
                     else{
-                        send(new Message("upload_res", ui.username, "NO", msg.sender,null));
+                        send(new Message("upload_res", ui.username, "NO", msg.sender));
                     }
                 }
                 else if(msg.type.equals("upload_res")){
@@ -159,7 +174,7 @@ public class SocketClient implements Runnable{
                 else{
                     ui.jTextArea1.append("[SERVER > Me] : Unknown message type\n");
                 }
-            }
+            /*}
             catch(Exception ex) {
                 keepRunning = false;
                 ui.jTextArea1.append("[Application > Me] : Connection Failure\n");
@@ -174,27 +189,18 @@ public class SocketClient implements Runnable{
                 
                 System.out.println("Exception SocketClient run()");
                 ex.printStackTrace();
-            }
+            }*/
         }
     }
+    
     
     public void send(Message msg){
         try {
             Out.writeObject(msg);
             Out.flush();
             System.out.println("Outgoing : "+msg.toString());
-                 if(msg.content==null){
-                     msg.content="";
-                 }      
-            if(msg.type.equals("message") && !msg.content.equals(".bye")){
-                String msgTime = (new Date()).toString();
-                try{
-                    hist.addMessage(msg, msgTime);               
-                    DefaultTableModel table = (DefaultTableModel) ui.historyFrame.jTable1.getModel();
-                    table.addRow(new Object[]{"Me", msg.content, msg.recipient, msgTime});
-                }
-                catch(Exception ex){}
-            }
+            
+         
         } 
         catch (IOException ex) {
             System.out.println("Exception SocketClient send()");

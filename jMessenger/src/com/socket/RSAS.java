@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Random;
  
-public class RSA
+public class RSAS
 {
     private BigInteger p;
     private BigInteger q;
@@ -25,7 +25,7 @@ public class RSA
     private int        bitlength = 1024;
     private Random     r;
  
-    public RSA()
+    public RSAS()
     {
         r = new Random();
         p = BigInteger.probablePrime(bitlength, r);
@@ -40,16 +40,17 @@ public class RSA
         d = e.modInverse(phi);
     }
  
-    public RSA(BigInteger e, BigInteger d, BigInteger N)
+    public RSAS(BigInteger e, BigInteger d, BigInteger N)
     {
         this.e = e;
         this.d = d;
         this.N = N;
     }
  
-    
+    @SuppressWarnings("deprecation")
  
-    public String bytesToString(byte[] encrypted)
+ 
+    public static String bytesToString(byte[] encrypted)
     {
         String test = "";
         for (byte b : encrypted)

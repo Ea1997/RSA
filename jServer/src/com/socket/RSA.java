@@ -39,6 +39,12 @@ public class RSA
         }
         d = e.modInverse(phi);
     }
+    public BigInteger Gete(){
+        return this.e;
+    }
+     public BigInteger GetN(){
+        return this.N;
+    }
  
     public RSA(BigInteger e, BigInteger d, BigInteger N)
     {
@@ -48,25 +54,9 @@ public class RSA
     }
  
     @SuppressWarnings("deprecation")
-    public static void main(String[] args) throws IOException
-    {
-        RSA rsa = new RSA();
-        DataInputStream in = new DataInputStream(System.in);
-        String teststring;
-        System.out.println("Enter the plain text:");
-        teststring = in.readLine();
-        System.out.println("Encrypting String: " + teststring);
-        System.out.println("String in Bytes: "
-                + bytesToString(teststring.getBytes()));
-        // encrypt
-        byte[] encrypted = rsa.encrypt(teststring.getBytes());
-        // decrypt
-        byte[] decrypted = rsa.decrypt(encrypted);
-        System.out.println("Decrypting Bytes: " + bytesToString(decrypted));
-        System.out.println("Decrypted String: " + new String(decrypted));
-    }
  
-    private static String bytesToString(byte[] encrypted)
+ 
+    public static String bytesToString(byte[] encrypted)
     {
         String test = "";
         for (byte b : encrypted)
